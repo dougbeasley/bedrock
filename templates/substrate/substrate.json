@@ -1,0 +1,36 @@
+
+
+{
+  "variables": {
+    "account_file": ".gcloud/soapbox-cloud.json",
+    "home": "{{env `HOME`}}"
+  },
+  "builders": [{
+    "type": "googlecompute",
+    "account_file": "{{ user `home` }}/{{user `account_file`}}",
+    "project_id": "soapbox-cloud",
+    "source_image_family": "debian-8",
+    "zone": "us-central1-f",
+    "image_family" : "substrate",
+    "image_name" : "substrate-node-{{isotime \"01022006\"}}",
+    "ssh_username" : "substrate"
+  }],
+  "provisioners": [
+    {
+        "type": "shell",
+        "scripts": [
+            "scripts/docker.sh"
+        ],
+        "execute_command": "sudo sh -c '{{ .Vars }} {{ .Path }}'"
+    }
+  ],
+  "post-processors": [
+  {
+      "type": "googlecompute-export",
+      "paths": [
+        "gs://bedrock-images/substrate/substrate-node.tar.gz"
+      ],
+      "keep_input_artifact": true
+    }
+  ]
+}
