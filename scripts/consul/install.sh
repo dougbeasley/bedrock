@@ -2,7 +2,6 @@
 set -e
 
 
-
 echo "Fetching Consul..."
 CONSUL=0.7.0
 cd /tmp
@@ -17,10 +16,11 @@ sudo mkdir -p /opt/consul/data
 # Read from the file we created
 SERVER_COUNT=$(cat /tmp/bedrock-server-count | tr -d '\n')
 CONSUL_JOIN=$(cat /tmp/bedrock-server-addr | tr -d '\n')
+PRIMARY_DNS=$(cat /tmp/primary-dns | tr -d '\n')
 
 # Write the flags to a temporary file
 cat >/tmp/consul_flags << EOF
-CONSUL_FLAGS="-server -bootstrap-expect=${SERVER_COUNT} -join=${CONSUL_JOIN} -data-dir=/opt/consul/data"
+CONSUL_FLAGS="-server -bootstrap-expect=${SERVER_COUNT} -join=${CONSUL_JOIN} -recursor=${PRIMARY_DNS} -data-dir=/opt/consul/data"
 EOF
 
 if [ -f /tmp/consul-upstart.conf ];

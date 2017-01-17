@@ -58,6 +58,12 @@ resource "google_compute_instance" "bedrock" {
     }
 
     provisioner "remote-exec" {
+      inline = [
+          "grep nameserver /etc/resolv.conf | sed 's/nameserver //' > /tmp/primary-dns"
+      ]
+    }
+
+    provisioner "remote-exec" {
         scripts = [
             "${path.module}/scripts/dependencies.sh"
         ]
@@ -86,6 +92,54 @@ resource "google_compute_instance" "bedrock" {
          ]
     }
 }
+
+resource "google_compute_instance" "substrate" {
+
+    count = "${var.clients}"
+
+    name = "substrate-${count.index}"
+    zone = "${var.region_zone}"
+    tags = ["docker", "node", "substrate"]
+
+    machine_type = "${var.machine_type}"
+
+    disk = {
+        image = "substrate-node-01102017"
+    }
+
+    network_interface {
+        network = "default"
+
+        access_config {
+            # Ephemeral
+        }
+    }
+
+    metadata {
+        ssh-keys = "${lookup(var.user, var.platform)}:${file("${var.public_key_path}")}"
+    }
+
+    service_account {
+        scopes = ["https://www.googleapis.com/auth/compute.readonly"]
+    }
+
+    connection {
+        user        = "${lookup(var.user, var.platform)}"
+        private_key = "${file("${var.private_key_path}")}"
+    }
+
+    provisioner "remote-exec" {
+        inline = [
+            "grep nameserver /etc/resolv.conf > /tmp/orig-nameserver",
+            "echo ${join(",", google_compute_instance.bedrock.*.network_interface.0.address)} | tr , '\n' > /tmp/bedrock-nameservers",
+            "sed -i -e 's/^/nameserver /' /tmp/bedrock-nameservers",
+            "grep -v nameserver /etc/resolv.conf > /tmp/resolve.conf.new",
+            "cat /tmp/bedrock-nameservers >> /tmp/resolve.conf.new && cat /tmp/orig-nameserver >> /tmp/resolve.conf.new",
+            "sudo mv -f /tmp/resolve.conf.new /etc/resolv.conf"
+        ]
+    }
+}
+
 
 resource "google_compute_firewall" "consul_ingress" {
     name = "consul-internal-access"

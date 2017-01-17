@@ -78,6 +78,11 @@ variable "servers" {
     description = "The number of Consul servers to launch"
 }
 
+variable "clients" {
+  default     = "3"
+  description = "The number of client nodes to launch"
+}
+
 variable "machine_type" {
     default     = "f1-micro"
     description = "Google Cloud Compute machine type"

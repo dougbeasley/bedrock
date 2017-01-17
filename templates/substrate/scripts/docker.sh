@@ -20,4 +20,5 @@ echo "deb https://apt.dockerproject.org/repo debian-jessie main"  > /etc/apt/sou
 apt-get update
 apt-cache policy docker-engine
 
-apt-get -y install docker-engine
+apt-get -y install docker-engine \
+                      dnsutils
