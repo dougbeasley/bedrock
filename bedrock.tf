@@ -104,7 +104,7 @@ resource "google_compute_instance" "substrate" {
     machine_type = "${var.machine_type}"
 
     disk = {
-        image = "substrate-node-01102017"
+        image = "substrate-node-01182017"
     }
 
     network_interface {

@@ -17,8 +17,9 @@ apt-key adv \
 
 echo "deb https://apt.dockerproject.org/repo debian-jessie main"  > /etc/apt/sources.list.d/docker.list
 
+#TODO DRY this out a bit
 apt-get update
+apt-get update --fix-missing
 apt-cache policy docker-engine
 
-apt-get -y install docker-engine \
-                      dnsutils
+apt-get -y install docker-engine dnsutils
