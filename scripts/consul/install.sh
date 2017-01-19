@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
 set -e
 
-
 echo "Fetching Consul..."
-CONSUL=0.7.0
+CONSUL=0.7.2
 cd /tmp
 wget -q https://releases.hashicorp.com/consul/${CONSUL}/consul_${CONSUL}_linux_amd64.zip -O consul.zip
 

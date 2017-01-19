@@ -17,9 +17,17 @@
   }],
   "provisioners": [
     {
+        "type": "file",
+        "source": "upstart/",
+        "destination": "/tmp"
+    },
+    {
         "type": "shell",
         "scripts": [
-            "scripts/docker.sh"
+            "scripts/dependencies.sh",
+            "scripts/docker.sh",
+            "scripts/consul.sh",
+            "scripts/nomad.sh"
         ],
         "execute_command": "sudo sh -c '{{ .Vars }} {{ .Path }}'"
     }
