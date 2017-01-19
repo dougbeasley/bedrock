@@ -16,7 +16,7 @@ resource "google_compute_instance" "bedrock" {
     machine_type = "${var.machine_type}"
 
     disk {
-        image = "${lookup(var.machine_image, var.platform)}"
+        image = "substrate-node-01192017"
     }
 
     network_interface {
@@ -40,26 +40,25 @@ resource "google_compute_instance" "bedrock" {
         private_key = "${file("${var.private_key_path}")}"
     }
 
-    provisioner "file" {
-        source      = "${path.module}/scripts/consul/${lookup(var.service_conf, var.platform)}"
-        destination = "/tmp/consul-${lookup(var.service_conf_dest, var.platform)}"
-    }
+    primary_server = google_compute_instance.bedrock.0.network_interface.0.address
+    consul_config = <<EOF
+{
+"data_dir" : "/opt/consul/data",
+"log_level" : "DEBUG",
+"server" : true,
+"bootstrap_expect" :  ${count},
+"start_join" : [${primary_server}]
+}
+EOF
 
     provisioner "file" {
-        source      = "${path.module}/scripts/nomad/${lookup(var.service_conf, var.platform)}"
-        destination = "/tmp/nomad-${lookup(var.service_conf_dest, var.platform)}"
-    }
-
-    provisioner "remote-exec" {
-        inline = [
-            "echo ${var.servers} > /tmp/bedrock-server-count",
-            "echo ${google_compute_instance.bedrock.0.network_interface.0.address} > /tmp/bedrock-server-addr",
-        ]
+      content = "${consul_config}"
+      destination = "/etc/consul.d/server.json"
     }
 
     provisioner "remote-exec" {
       inline = [
-          "grep nameserver /etc/resolv.conf | sed 's/nameserver //' > /tmp/primary-dns"
+          "grep nameserver /etc/resolv.conf | sed 's/nameserver //' | xargs printf  '{ \"recursors\" : [\"%s\"]}' > /etc/consul.d/primary-dns.json"
       ]
     }
 
@@ -71,7 +70,6 @@ resource "google_compute_instance" "bedrock" {
 
     provisioner "remote-exec" {
         scripts = [
-            "${path.module}/scripts/consul/install.sh",
             "${path.module}/scripts/consul/service.sh",
             "${path.module}/scripts/consul/ip_tables.sh",
         ]
@@ -79,9 +77,7 @@ resource "google_compute_instance" "bedrock" {
 
     provisioner "remote-exec" {
         scripts = [
-            "${path.module}/scripts/nomad/install.sh",
             "${path.module}/scripts/nomad/service.sh",
-            "${path.module}/scripts/nomad/ip_tables.sh",
         ]
     }
 
@@ -104,7 +100,7 @@ resource "google_compute_instance" "substrate" {
     machine_type = "${var.machine_type}"
 
     disk = {
-        image = "substrate-node-01182017"
+        image = "substrate-node-01192017"
     }
 
     network_interface {
