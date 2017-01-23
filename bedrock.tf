@@ -64,7 +64,7 @@ resource "google_compute_instance" "bedrock" {
         inline = [
             "sudo systemctl daemon-reload",
             "sudo systemctl enable consul",
-            "sudo systemctl enable start"
+            "sudo systemctl start consul"
         ]
     }
 

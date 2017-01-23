@@ -8,7 +8,7 @@ Requires=consul_bind.service
 Type=simple
 EnvironmentFile=/etc/consul.env
 User=consul
-WorkingDirectory=/home/consul
+WorkingDirectory=/var/consul/data
 ExecStart=/usr/local/bin/consul agent -bind=${BIND} -config-dir=/etc/consul.d -server -data-dir=/var/consul/data
 Restart=on-abort
 
