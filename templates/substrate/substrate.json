@@ -17,11 +17,6 @@
   }],
   "provisioners": [
     {
-        "type": "file",
-        "source": "upstart/",
-        "destination": "/tmp"
-    },
-    {
         "type": "shell",
         "scripts": [
             "scripts/dependencies.sh",

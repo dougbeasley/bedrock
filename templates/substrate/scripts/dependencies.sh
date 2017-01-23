@@ -17,4 +17,5 @@ apt-key adv \
 echo "deb https://apt.dockerproject.org/repo debian-jessie main"  > /etc/apt/sources.list.d/docker.list
 
 sudo apt-get update
-sudo apt-get install -y dnsutils unzip
+sudo apt-get install -y dnsutils unzip resolvconf systemd
+#echo 'Yes, do as I say!' | apt-get -o DPkg::options=--force-remove-essential -y --force-yes install upstart

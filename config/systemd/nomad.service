@@ -1,0 +1,12 @@
+[Unit]
+Description=Nomad Service
+After=network.target
+
+[Service]
+Type=simple
+User=substrate
+WorkingDirectory=/home/substrate
+ExecStart=/usr/local/bin/consul agent -dev
+Restart=on-abort
+[Install]
+WantedBy=multi-user.target

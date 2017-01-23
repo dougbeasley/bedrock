@@ -16,7 +16,7 @@ resource "google_compute_instance" "bedrock" {
     machine_type = "${var.machine_type}"
 
     disk {
-        image = "substrate-node-01192017"
+        image = "substrate-node-01232017"
     }
 
     network_interface {
@@ -28,7 +28,7 @@ resource "google_compute_instance" "bedrock" {
     }
 
     metadata {
-        ssh-keys = "${lookup(var.user, var.platform)}:${file("${var.public_key_path}")}"
+        ssh-keys = "substrate:${file("${var.public_key_path}")}"
     }
 
     service_account {
@@ -36,48 +36,41 @@ resource "google_compute_instance" "bedrock" {
     }
 
     connection {
-        user        = "${lookup(var.user, var.platform)}"
+        user        = "substrate"
         private_key = "${file("${var.private_key_path}")}"
-    }
-
-    primary_server = google_compute_instance.bedrock.0.network_interface.0.address
-    consul_config = <<EOF
-{
-"data_dir" : "/opt/consul/data",
-"log_level" : "DEBUG",
-"server" : true,
-"bootstrap_expect" :  ${count},
-"start_join" : [${primary_server}]
-}
-EOF
-
-    provisioner "file" {
-      content = "${consul_config}"
-      destination = "/etc/consul.d/server.json"
     }
 
     provisioner "remote-exec" {
       inline = [
-          "grep nameserver /etc/resolv.conf | sed 's/nameserver //' | xargs printf  '{ \"recursors\" : [\"%s\"]}' > /etc/consul.d/primary-dns.json"
+          "sudo mkdir /etc/consul.d",
+          "grep nameserver /etc/resolv.conf | sed 's/nameserver //' | xargs printf  '{ \"recursors\" : [\"%s\"] }' | sudo tee /etc/consul.d/primary-dns.json",
+          "echo ${google_compute_instance.bedrock.0.network_interface.0.address } | xargs printf '{ \"start_join\" : [\"%s\"]}' | sudo tee /etc/consul.d/start-join.json",
+          "echo ${var.servers} | xargs printf '{ \"bootstrap_expect\" : %d }' | sudo tee /etc/consul.d/bootstrap-expect.json"
       ]
     }
 
+    provisioner "file" {
+        source = "config/systemd"
+        destination = "/tmp"
+    }
+
     provisioner "remote-exec" {
-        scripts = [
-            "${path.module}/scripts/dependencies.sh"
+        inline = [
+            "sudo mv /tmp/systemd/* /etc/systemd/system"
+        ]
+    }
+
+    provisioner "remote-exec" {
+        inline = [
+            "sudo systemctl daemon-reload",
+            "sudo systemctl enable consul",
+            "sudo systemctl enable start"
         ]
     }
 
     provisioner "remote-exec" {
         scripts = [
-            "${path.module}/scripts/consul/service.sh",
-            "${path.module}/scripts/consul/ip_tables.sh",
-        ]
-    }
-
-    provisioner "remote-exec" {
-        scripts = [
-            "${path.module}/scripts/nomad/service.sh",
+            "${path.module}/scripts/consul/ip_tables.sh"
         ]
     }
 
@@ -89,6 +82,7 @@ EOF
     }
 }
 
+/*
 resource "google_compute_instance" "substrate" {
 
     count = "${var.clients}"
@@ -100,7 +94,7 @@ resource "google_compute_instance" "substrate" {
     machine_type = "${var.machine_type}"
 
     disk = {
-        image = "substrate-node-01192017"
+        image = "substrate-node-01202017"
     }
 
     network_interface {
@@ -112,7 +106,7 @@ resource "google_compute_instance" "substrate" {
     }
 
     metadata {
-        ssh-keys = "${lookup(var.user, var.platform)}:${file("${var.public_key_path}")}"
+        ssh-keys = "substrate:${file("${var.public_key_path}")}"
     }
 
     service_account {
@@ -120,7 +114,7 @@ resource "google_compute_instance" "substrate" {
     }
 
     connection {
-        user        = "${lookup(var.user, var.platform)}"
+        user        = "substrate"
         private_key = "${file("${var.private_key_path}")}"
     }
 
@@ -135,6 +129,7 @@ resource "google_compute_instance" "substrate" {
         ]
     }
 }
+*/
 
 
 resource "google_compute_firewall" "consul_ingress" {
