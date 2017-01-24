@@ -1,12 +1,12 @@
 [Unit]
 Description=Consul Service
 #After=network.target
-After=consul_bind.service
-Requires=consul_bind.service
+After=bind_info.service
+Requires=bind_info.service
 
 [Service]
 Type=simple
-EnvironmentFile=/etc/consul.env
+EnvironmentFile=/etc/bind_info.env
 User=consul
 WorkingDirectory=/var/consul/data
 ExecStart=/usr/local/bin/consul agent -bind=${BIND} -config-dir=/etc/consul.d -server -data-dir=/var/consul/data

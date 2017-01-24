@@ -1,12 +1,15 @@
 [Unit]
 Description=Nomad Service
-After=network.target
+After=consul.service
+Requires=consul.service
 
 [Service]
 Type=simple
-User=substrate
-WorkingDirectory=/home/substrate
-ExecStart=/usr/local/bin/consul agent -dev
+EnvironmentFile=/etc/bind_info.env
+User=nomad
+WorkingDirectory=/var/nomad/data
+ExecStart=/usr/local/bin/nomad agent -config=/etc/nomad.d -data-dir=/var/nomad/data
 Restart=on-abort
+
 [Install]
 WantedBy=multi-user.target

@@ -1,0 +1,9 @@
+[Unit]
+Description=Generates /etc/bind_info.env file
+After=network.target
+Requires=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/bin/sh -c "echo -n BIND= > /etc/bind_info.env"
+ExecStart=/bin/sh -c "ifconfig eth0 | grep 'inet addr' | awk '{ print substr($2,6) }' >> /etc/bind_info.env"

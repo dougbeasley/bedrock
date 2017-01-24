@@ -1,9 +1,0 @@
-[Unit]
-Description=Generates /etc/consul.env file
-After=network.target
-Requires=network.target
-
-[Service]
-Type=oneshot
-ExecStart=/bin/sh -c "echo -n BIND= > /etc/consul.env"
-ExecStart=/bin/sh -c "ifconfig eth0 | grep 'inet addr' | awk '{ print substr($2,6) }' >> /etc/consul.env"

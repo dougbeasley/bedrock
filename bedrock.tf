@@ -43,10 +43,23 @@ resource "google_compute_instance" "bedrock" {
     provisioner "remote-exec" {
       inline = [
           "sudo mkdir /etc/consul.d",
+          "sudo mkdir /etc/nomad.d",
           "grep nameserver /etc/resolv.conf | sed 's/nameserver //' | xargs printf  '{ \"recursors\" : [\"%s\"] }' | sudo tee /etc/consul.d/primary-dns.json",
           "echo ${google_compute_instance.bedrock.0.network_interface.0.address } | xargs printf '{ \"start_join\" : [\"%s\"]}' | sudo tee /etc/consul.d/start-join.json",
-          "echo ${var.servers} | xargs printf '{ \"bootstrap_expect\" : %d }' | sudo tee /etc/consul.d/bootstrap-expect.json"
+          "echo ${var.servers} | xargs printf '{ \"bootstrap_expect\" : %d }' | sudo tee /etc/consul.d/bootstrap-expect.json",
+          "echo ${var.servers} | xargs printf '{ \"server\" : { \"bootstrap_expect\" : %d } }' | sudo tee /etc/nomad.d/bootstrap-expect.json",
       ]
+    }
+
+    provisioner "file" {
+        source = "config/nomad/server.hcl"
+        destination = "/tmp/nomad-server.hcl"
+    }
+
+    provisioner "remote-exec" {
+        inline = [
+            "sudo mv /tmp/nomad-server.hcl /etc/nomad.d/server.hcl"
+        ]
     }
 
     provisioner "file" {
@@ -64,7 +77,9 @@ resource "google_compute_instance" "bedrock" {
         inline = [
             "sudo systemctl daemon-reload",
             "sudo systemctl enable consul",
-            "sudo systemctl start consul"
+            "sudo systemctl enable nomad",
+            "sudo systemctl start consul",
+            "sudo systemctl start nomad"
         ]
     }
 
