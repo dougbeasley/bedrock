@@ -47,6 +47,7 @@ resource "google_compute_instance" "bedrock" {
           "grep nameserver /etc/resolv.conf | sed 's/nameserver //' | xargs printf  '{ \"recursors\" : [\"%s\"] }' | sudo tee /etc/consul.d/primary-dns.json",
           "echo ${google_compute_instance.bedrock.0.network_interface.0.address } | xargs printf '{ \"start_join\" : [\"%s\"]}' | sudo tee /etc/consul.d/start-join.json",
           "echo ${var.servers} | xargs printf '{ \"bootstrap_expect\" : %d }' | sudo tee /etc/consul.d/bootstrap-expect.json",
+          "echo { \"server\" : true } | sudo tee /etc/consul.d/server.json",
           "echo ${var.servers} | xargs printf '{ \"server\" : { \"bootstrap_expect\" : %d } }' | sudo tee /etc/nomad.d/bootstrap-expect.json",
       ]
     }
@@ -97,7 +98,6 @@ resource "google_compute_instance" "bedrock" {
     }
 }
 
-/*
 resource "google_compute_instance" "substrate" {
 
     count = "${var.clients}"
@@ -109,7 +109,7 @@ resource "google_compute_instance" "substrate" {
     machine_type = "${var.machine_type}"
 
     disk = {
-        image = "substrate-node-01202017"
+        image = "substrate-node-01232017"
     }
 
     network_interface {
@@ -133,19 +133,56 @@ resource "google_compute_instance" "substrate" {
         private_key = "${file("${var.private_key_path}")}"
     }
 
+    provisioner "file" {
+        source = "config/consul/client.json"
+        destination = "/tmp/consul-client.json"
+    }
+
+    provisioner "file" {
+        source = "config/nomad/client.hcl"
+        destination = "/tmp/nomad-client.hcl"
+    }
+
+    provisioner "remote-exec" {
+      inline = [
+          "sudo mkdir /etc/consul.d",
+          "sudo mkdir /etc/nomad.d",
+          "sudo mv /tmp/consul-client.json /etc/consul.d/client.json",
+          "sudo mv /tmp/nomad-client.hcl /etc/nomad.d/client.hcl"
+      ]
+    }
+
     provisioner "remote-exec" {
         inline = [
-            "grep nameserver /etc/resolv.conf > /tmp/orig-nameserver",
             "echo ${join(",", google_compute_instance.bedrock.*.network_interface.0.address)} | tr , '\n' > /tmp/bedrock-nameservers",
             "sed -i -e 's/^/nameserver /' /tmp/bedrock-nameservers",
-            "grep -v nameserver /etc/resolv.conf > /tmp/resolve.conf.new",
-            "cat /tmp/bedrock-nameservers >> /tmp/resolve.conf.new && cat /tmp/orig-nameserver >> /tmp/resolve.conf.new",
-            "sudo mv -f /tmp/resolve.conf.new /etc/resolv.conf"
+            "cat /tmp/bedrock-nameservers | sudo tee -a /etc/resolvconf/resolv.conf.d/head",
+            "sudo resolvconf -u",
+         ]
+    }
+
+    provisioner "file" {
+        source = "config/systemd"
+        destination = "/tmp"
+    }
+
+    provisioner "remote-exec" {
+        inline = [
+            "sudo mv /tmp/systemd/* /etc/systemd/system"
         ]
     }
-}
-*/
 
+    provisioner "remote-exec" {
+        inline = [
+            "sudo systemctl daemon-reload",
+            "sudo systemctl enable consul",
+            "sudo systemctl enable nomad",
+            "sudo systemctl start consul",
+            "sudo systemctl start nomad"
+        ]
+    }
+
+}
 
 resource "google_compute_firewall" "consul_ingress" {
     name = "consul-internal-access"

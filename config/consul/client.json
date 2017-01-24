@@ -1,0 +1,7 @@
+{
+    "server": false,
+    "data_dir": "/var/consul/data",
+    "log_level": "INFO",
+    "enable_syslog": true,
+    "start_join": ["consul.service.consul"]
+}
