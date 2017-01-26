@@ -83,14 +83,14 @@ resource "google_compute_instance" "bedrock" {
             "sudo systemctl start nomad"
         ]
     }
-
+/*
     provisioner "remote-exec" {
         inline = [
             "echo nameserver ${self.network_interface.0.address} | sudo tee -a /etc/resolvconf/resolv.conf.d/head",
             "sudo resolvconf -u",
          ]
     }
-
+*/
     provisioner "file" {
       content = "conf-dir=/etc/dnsmasq.d"
       destination = "/tmp/dnsmasq.conf"
@@ -103,6 +103,7 @@ resource "google_compute_instance" "bedrock" {
 
     provisioner "remote-exec" {
       inline = [
+        "echo listen-address=${self.network_interface.0.address} | tee -a /tmp/consul-dns.conf",
         "sudo mv /tmp/dnsmasq.conf /etc/dnsmasq.conf",
         "sudo mv /tmp/consul-dns.conf /etc/dnsmasq.d",
         "sudo systemctl restart dnsmasq"
