@@ -5,7 +5,7 @@ Requires=consul.service
 
 [Service]
 Type=simple
-ExecStart=/usr/local/bin/consul-template --template=/etc/haproxy/haproxy.conf.ctmpl:/etc/haproxy/haproxy.cfg:systemctl\x20reload\x20haproxy
+ExecStart=/usr/local/bin/consul-template --template=/etc/haproxy/haproxy.conf.tmpl:/etc/haproxy/haproxy.cfg:systemctl\x20reload\x20haproxy
 Restart=on-abort
 
 [Install]

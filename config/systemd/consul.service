@@ -9,7 +9,7 @@ Type=simple
 EnvironmentFile=/etc/bind_info.env
 User=consul
 WorkingDirectory=/var/consul/data
-ExecStart=/usr/local/bin/consul agent -bind=${BIND} -config-dir=/etc/consul.d -data-dir=/var/consul/data
+ExecStart=/usr/local/bin/consul agent -bind=${BIND} -client=0.0.0.0 -config-dir=/etc/consul.d -data-dir=/var/consul/data
 Restart=on-abort
 
 [Install]

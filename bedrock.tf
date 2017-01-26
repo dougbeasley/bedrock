@@ -48,7 +48,7 @@ resource "google_compute_instance" "bedrock" {
           "echo ${google_compute_instance.bedrock.0.network_interface.0.address } | xargs printf '{ \"start_join\" : [\"%s\"]}' | sudo tee /etc/consul.d/start-join.json",
           "echo ${var.servers} | xargs printf '{ \"bootstrap_expect\" : %d }' | sudo tee /etc/consul.d/bootstrap-expect.json",
           "echo true | xargs printf '{ \"server\" : %s }' | sudo tee /etc/consul.d/server.json",
-          "echo ${var.servers} | xargs printf '{ \"server\" : { \"bootstrap_expect\" : %d } }' | sudo tee /etc/nomad.d/bootstrap-expect.json",
+          "echo ${var.servers} | xargs printf '{ \"server\" : { \"bootstrap_expect\" : %d } }' | sudo tee /etc/nomad.d/bootstrap-expect.json"
       ]
     }
 
@@ -61,6 +61,11 @@ resource "google_compute_instance" "bedrock" {
         inline = [
             "sudo mv /tmp/nomad-server.hcl /etc/nomad.d/server.hcl"
         ]
+    }
+
+    provisioner "file" {
+        source = "jobs"
+        destination = "/tmp"
     }
 
     provisioner "file" {
@@ -83,14 +88,7 @@ resource "google_compute_instance" "bedrock" {
             "sudo systemctl start nomad"
         ]
     }
-/*
-    provisioner "remote-exec" {
-        inline = [
-            "echo nameserver ${self.network_interface.0.address} | sudo tee -a /etc/resolvconf/resolv.conf.d/head",
-            "sudo resolvconf -u",
-         ]
-    }
-*/
+
     provisioner "file" {
       content = "conf-dir=/etc/dnsmasq.d"
       destination = "/tmp/dnsmasq.conf"

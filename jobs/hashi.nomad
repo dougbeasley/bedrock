@@ -1,8 +1,9 @@
 
-job "hyper" {
+
+
+job "hashi" {
 
   datacenters = ["dc1"]
-
   type = "service"
 
   update {
@@ -19,22 +20,25 @@ job "hyper" {
       driver = "docker"
 
       config {
-        image = "hyper/docker-registry-web:latest"
+        image = "jippi/hashi-ui:latest"
         port_map {
-          hyper = 8080
+          hashi = 3000
         }
       }
 
       env {
-        REGISTRY_NAME = "docker-registry.service.consul:5000"
-        REGISTRY_URL = "http://docker-registry.service.consul:5000/v2"
+        NOMAD_ADDR = "http://nomad.service.consul:4646"
+        NOMAD_ENABLE = true
+        CONSUL_ADDR = "consul.service.consul:8500"
+        CONSUL_ENABLE = true
+        LOG_LEVEL = "debug"
       }
 
       service {
-        port = "hyper"
+        port = "hashi"
         check {
           type     = "tcp"
-          port     = "hyper"
+          port     = "hashi"
           interval = "10s"
           timeout  = "2s"
         }
@@ -42,11 +46,11 @@ job "hyper" {
 
       resources {
         cpu    = 500 # MHz
-        memory = 512 # MB
+        memory = 256 # MB
 
         network {
           mbits = 100
-          port "hyper" {}
+          port "hashi" {}
         }
       }
     }
