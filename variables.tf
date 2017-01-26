@@ -40,6 +40,22 @@ variable "clients" {
 }
 
 variable "machine_type" {
-    default     = "f1-micro"
+    type = "map"
+    default     = {
+      bedrock   = "f1-micro"
+      substrate = "n1-standard-1"
+      internal-proxy = "f1-micro"
+    }
     description = "Google Cloud Compute machine type"
+}
+
+
+variable "machine_image" {
+    type = "map"
+    default = {
+      bedrock   = "substrate-node-01252017"
+      substrate = "substrate-node-01252017"
+      internal-proxy = "proxy-node-01252017"
+    }
+    description = "Google Cloud Compute image"
 }

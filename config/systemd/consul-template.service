@@ -1,0 +1,12 @@
+[Unit]
+Description=Consul Template Service
+After=consul.service
+Requires=consul.service
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/consul-template --template=/etc/haproxy/haproxy.conf.ctmpl:/etc/haproxy/haproxy.cfg:systemctl\x20reload\x20haproxy
+Restart=on-abort
+
+[Install]
+WantedBy=multi-user.target

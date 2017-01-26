@@ -11,18 +11,17 @@
     "project_id": "soapbox-cloud",
     "source_image_family": "debian-8",
     "zone": "us-central1-f",
-    "image_family" : "substrate",
-    "image_name" : "substrate-node-{{isotime \"01022006\"}}",
-    "ssh_username" : "substrate"
+    "image_family" : "proxy",
+    "image_name" : "proxy-node-{{isotime \"01022006\"}}",
+    "ssh_username" : "hydra"
   }],
   "provisioners": [
     {
         "type": "shell",
         "scripts": [
             "scripts/dependencies.sh",
-            "../shared/scripts/docker.sh",
             "../shared/scripts/consul.sh",
-            "../shared/scripts/nomad.sh"
+            "../shared/scripts/consul-template.sh"
         ],
         "execute_command": "sudo sh -c '{{ .Vars }} {{ .Path }}'"
     }
@@ -31,7 +30,7 @@
   {
       "type": "googlecompute-export",
       "paths": [
-        "gs://bedrock-images/substrate/substrate-node.tar.gz"
+        "gs://bedrock-images/proxy/proxy-node.tar.gz"
       ],
       "keep_input_artifact": true
     }

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -vx
+set -e
 
 apt-get update --fix-missing
 apt-cache policy docker-engine
