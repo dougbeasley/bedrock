@@ -23,23 +23,17 @@ defaults
         errorfile 503 /etc/haproxy/errors/503.http
         errorfile 504 /etc/haproxy/errors/504.http
 
-        
-frontend hyper
-  bind :8080
-  mode tcp
-  default_backend hyper-backend
+frontend web-proxy
+  bind :80
+  mode  http
+  option httplog{{range services}}{{if in .Tags "web"}}
+  acl is-api-{{.Name}} hdr_sub(host) -i {{.Name}}.
+  use_backend {{.Name}} if is-api-{{.Name}}
+{{end}}{{end}}
+  default_backend hashi-web-ui
 
-frontend hashi
-  bind :8081
-  mode tcp
-  default_backend hashi-backend
-
-backend hyper-backend
-   mode tcp
-   balance roundrobin {{range service "hyper-web-ui"}}
-   server {{.Node}} {{.Address}}:{{.Port}}{{end}}
-
-backend hashi-backend
-   mode tcp
-   balance roundrobin {{range service "hashi-web-ui"}}
-   server {{.Node}} {{.Address}}:{{.Port}}{{end}}
+{{range services}} {{$name := .Name}} {{ if in .Tags "web" }}
+backend {{ $name }}
+  balance roundrobin{{range $service := service .Name}}
+  server {{$service.Node}} {{$service.Address}}:{{$service.Port}} {{end}}
+{{end}}{{end}}
