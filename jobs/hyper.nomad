@@ -32,6 +32,7 @@ job "hyper" {
 
       service {
         port = "hyper"
+        tags = ["web"]
         check {
           type     = "tcp"
           port     = "hyper"

@@ -36,6 +36,7 @@ job "hashi" {
 
       service {
         port = "hashi"
+        tags = ["web"]
         check {
           type     = "tcp"
           port     = "hashi"

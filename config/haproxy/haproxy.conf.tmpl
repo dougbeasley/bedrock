@@ -30,7 +30,11 @@ frontend web-proxy
   acl is-api-{{.Name}} hdr_sub(host) -i {{.Name}}.
   use_backend {{.Name}} if is-api-{{.Name}}
 {{end}}{{end}}
-  default_backend hashi-web-ui
+  default_backend consul-ui
+
+backend consul-ui
+  balance roundrobin
+  server consul-n consul.service.consul:8500
 
 {{range services}} {{$name := .Name}} {{ if in .Tags "web" }}
 backend {{ $name }}
