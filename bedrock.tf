@@ -285,6 +285,7 @@ resource "google_compute_instance" "internal-proxy" {
     }
 }
 
+/* Might want to switch this to a TCP health check and remove the detail backend */
 resource "google_compute_http_health_check" "default" {
   name                = "tf-www-basic-check"
   request_path        = "/"
